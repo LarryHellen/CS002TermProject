@@ -1,23 +1,23 @@
 // File Name: TaskFlow.cpp
 
-// Author: Group 4 (Developer: Larry Hellen)
+// Author: Group 4 (Developer: Larry Hellen, Lukas Li)
 
 // Email Address: lhellen@go.pasadena.edu
 
-// Project Version: 0.1
+// Project Version: 0.2
 
 // Description: A task manager
 
-// Last Changed: October 4, 2023
+// Last Changed: October 14, 2023
 
 #include <iostream>
-
+using namespace std;
 
 int currentDate[3] = {}; //{year, month, date}
 const int maxTaskCategories = 10;
 const int maxTotalTasks = 10;
-std::string taskCategories[maxTaskCategories] = {};
-std::string totalTasks[maxTotalTasks] = {};
+string taskCategories[maxTaskCategories] = {};
+string totalTasks[maxTotalTasks] = {};
 
 typedef void(*optionList)(); //Data type for arrays that hold void functions
 
@@ -32,21 +32,21 @@ void taskCategoryDeleter();
 void ender();
 
 //Predefined messages for each option
-std::string DATE_SELECT = "Date selection";
-std::string NEW_DATE = "Enter a new date";
-std::string CATEGORY_MENU = "Task category menu";
-std::string NEW_TASK = "Create a new task";
-std::string DELETE_TASK = "Delete a task";
-std::string VIEW_TASK = "View your tasks";
-std::string ANOTHER_TASK = "Create another task";
-std::string ANOTHER_DELETE_TASK = "Delete another task";
-std::string MAIN_MENU = "Return to main menu";
-std::string CAT_MENU_RETURN = "Return to category menu";
-std::string NEW_CAT = "Create a new task category";
-std::string DELETE_CAT = "Delete a task category";
-std::string ANOTHER_CAT = "Create another task category";
-std::string ANOTHER_DELETE_CAT = "Delete another category";
-std::string EXIT = "Exit program";
+string DATE_SELECT = "Date selection";
+string NEW_DATE = "Enter a new date";
+string CATEGORY_MENU = "Task category menu";
+string NEW_TASK = "Create a new task";
+string DELETE_TASK = "Delete a task";
+string VIEW_TASK = "View your tasks";
+string ANOTHER_TASK = "Create another task";
+string ANOTHER_DELETE_TASK = "Delete another task";
+string MAIN_MENU = "Return to main menu";
+string CAT_MENU_RETURN = "Return to category menu";
+string NEW_CAT = "Create a new task category";
+string DELETE_CAT = "Delete a task category";
+string ANOTHER_CAT = "Create another task category";
+string ANOTHER_DELETE_CAT = "Delete another category";
+string EXIT = "Exit program";
 
 
 //Class that creates menu objects that allow for various options to be provided to user
@@ -54,15 +54,15 @@ class menu
 {
 public:
 	optionList* options; //Array of functions
-	std::string* optionTitles; //Array of messages
+	string* optionTitles; //Array of messages
 	int choice, len;
 
 	//Fills in member values for the object
-	void syncOptions(optionList* list, std::string* messages, int length)
+	void syncOptions(optionList* list, string* messages, int length)
 	{
 		len = length;
 		options = new optionList[length];
-		optionTitles = new std::string[length];
+		optionTitles = new string[length];
 		
 
 		for (int i = 0; i <= (len - 1); i++)
@@ -81,7 +81,7 @@ public:
 		{
 			int listNum = i + 1;
 
-			std::cout << listNum << ". " << optionTitles[i] << std::endl;
+			cout << listNum << ". " << optionTitles[i] << endl;
 		}
 
 		//Loop that will continue until user provides valid input
@@ -89,21 +89,21 @@ public:
 		{
 			bool invalid;
 
-			std::cout << std::endl << "Enter choice here: ";
-			std::cin >> choice;
-			invalid = std::cin.fail(); //Returns true if the wrong data type is entered
+			cout << endl << "Enter choice here: ";
+			cin >> choice;
+			invalid = cin.fail(); //Returns true if the wrong data type is entered
 
 			if (invalid)
 			{
-				std::cout << "Please enter the number corresponding with one of the choices.";
+				cout << "Please enter the number corresponding with one of the choices.";
 
 				//Prevents eternal looping after cin.fail
-				std::cin.clear();
-				std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+				cin.clear();
+				cin.ignore(numeric_limits<streamsize>::max(), '\n');
 			}
 			else if (choice > len || choice < 1 || choice != floor(choice)) //Makes sure the number is within the bounds that are given
 			{
-				std::cout << "Please enter the number corresponding with one of the choices."; 
+				cout << "Please enter the number corresponding with one of the choices."; 
 			}
 			else
 			{
@@ -111,7 +111,7 @@ public:
 			}
 		}
 
-		std::cout << std::endl;
+		cout << endl;
 		options[choice - 1](); //Executes the next function
 	}
 };
@@ -120,7 +120,7 @@ public:
 
 int main()
 {
-	using namespace std;
+	
 
 	cout << "Welcome user!\n";
 	cout << "Please define some task categories first, such as work, dentist, birthday.\n\n";
@@ -131,70 +131,11 @@ int main()
 //Sends user to any of the menus availble based on input
 void featureSelection()
 {
-	using namespace std;
-
-
-	/*
-	//The possible options for the user
-	const string dateOption = "1. Date selection\n";
-	const string taskCategoryOption = "2. Task cateogory menu\n";
-	const string taskCreationOption = "3. Create a new task\n";
-	const string taskDeletionOption = "4. Delete a task\n";
-	const string taskViewOption = "5. View your tasks\n";
-	string currentFeatures = "0. Exit the program\n";
-	int userOption = 0;
-
-	//Only allow the user access to the task options if they have selected a date already
-	currentFeatures += dateOption + taskCategoryOption;
-
-
-	if (!(currentDate[0] == 0 && currentDate[1] == 0 && currentDate[2] == 0))
-	{
-		currentFeatures += taskCreationOption + taskDeletionOption + taskViewOption;
-	}
-	*/
-
-
 	optionList currentFeatures1[] = { dateSelection, taskCategoryMenu, taskCreation, taskDeletion, taskView, ender };
 	string optionNames1[] = { DATE_SELECT, CATEGORY_MENU, NEW_TASK, DELETE_TASK, VIEW_TASK, EXIT };
 
 	optionList currentFeatures2[] = { dateSelection, taskCategoryMenu, ender };
 	string optionNames2[] = { DATE_SELECT, CATEGORY_MENU, EXIT };
-
-	/*
-	//Display the current possible features and ask the user what they want to do
-	cout << "Here are the currently availble features:\n";
-	cout << currentFeatures;
-	cout << "Please choose a feature by number: ";
-	cin >> userOption;
-	cout << endl;
-
-	//Send the user to the right menu
-	if (userOption == 0)
-	{
-		return;
-	}
-	else if (userOption == 1)
-	{
-		dateSelection();
-	}
-	else if (userOption == 2)
-	{
-		taskCategoryMenu();
-	}
-	else if (userOption == 3)
-	{
-		taskCreation();
-	}
-	else if (userOption == 4)
-	{
-		taskDeletion();
-	}
-	else if (userOption == 5)
-	{
-		taskView();
-	}
-	*/
 
 	menu mainMenu;
 
@@ -215,7 +156,7 @@ void featureSelection()
 //Sends user to either main menu or allow more tasks to be created based on user input
 void taskCreation()
 {
-	using namespace std;
+	
 
 	string taskName = "";
 	string taskTime = "";
@@ -250,22 +191,6 @@ void taskCreation()
 		}
 	}
 
-	/*
-	cout << "Alright, a new task " << taskName << " has been created!\nEnter 1 to return to create another task or 2 to return to the main menu: ";
-	cin >> userOption;
-	cout << endl;
-
-	//Based on user input, send them to a new menu
-	if (userOption == 1)
-	{
-		taskCreation();
-	}
-	else if (userOption == 2)
-	{
-		featureSelection();
-	}
-	*/
-
 	cout << "Alright, a new task " << taskName << " has been created!\n\n";
 
 	optionList currentFeatures[] = { taskCreation, featureSelection };
@@ -281,7 +206,7 @@ void taskCreation()
 //Sends user to either main menu or allow more tasks to be deleted based on user input
 void taskDeletion()
 {
-	using namespace std;
+	
 
 	string taskName = "";
 
@@ -301,22 +226,6 @@ void taskDeletion()
 		}
 	}
 
-	/*
-	cout << "Alright, the task " << taskName << " has been deleted!\nEnter 1 to return to delete another task or 2 to return to the main menu: ";
-	cin >> userOption;
-	cout << endl;
-
-	//Send the user to a new menu
-	if (userOption == 1)
-	{
-		taskDeletion();
-	}
-	else if (userOption == 2)
-	{
-		featureSelection();
-	}
-	*/
-
 	cout << "Alright, the task " << taskName << " has been deleted!\n\n";
 
 	optionList currentFeatures[] = { taskDeletion, featureSelection };
@@ -331,7 +240,7 @@ void taskDeletion()
 //Overview: Print the current saved tasks to the console, and send user to main menu
 void taskView()
 {
-	using namespace std;
+	
 
 	//Iterate through the list of tasks saved, and print all non empty tasks to the console.
 	cout << "Here are your current tasks (the maximum is 10):\n";
@@ -349,7 +258,7 @@ void taskView()
 //Sends the user to the main menu or allows them to select a new date based on input
 void dateSelection()
 {
-	using namespace std;
+	
 
 	int year = 0;
 	int month = 0;
@@ -372,23 +281,6 @@ void dateSelection()
 	//Repeat their date back to them
 	cout << "Your selected date is (m/d/y): " << month << ", " << day << ", " << year << endl;
 
-	/*
-	cout << "What would you like to do? Enter 1 to choose a new date or 2 to return to the main menu: ";
-	
-	cin >> userOption;
-	cout << endl;
-
-	//Sends user to new menu
-	if (userOption == 1)
-	{
-		dateSelection();
-	}
-	else if (userOption == 2)
-	{
-		featureSelection();
-	}
-	*/
-
 	optionList currentFeatures[] = { dateSelection, featureSelection };
 	string optionNames[] = { NEW_DATE, MAIN_MENU };
 
@@ -402,7 +294,7 @@ void dateSelection()
 //Sends the user to task category creation, deletion, or main menu based on input
 void taskCategoryMenu()
 {
-	using namespace std;
+	
 
 	int userOption = 0;
 
@@ -450,7 +342,7 @@ void taskCategoryMenu()
 //Sends user to either task category menu, main menu, or allows for more tasks to be created based on user input
 void taskCategoryCreator()
 {
-	using namespace std;
+	
 
 	string taskCategoryName = "";
 	int userOption = 0;
@@ -469,26 +361,6 @@ void taskCategoryCreator()
 		}
 	}
 
-	/*
-	cout << "Alright, a new task category " << taskCategoryName << " has been created!\nEnter 1 to return to create another task category, 2 to return to the task category menu, and 3 to return to the main menu: ";
-	cin >> userOption;
-	cout << endl;
-
-	//Send the user to a new menu
-	if (userOption == 1)
-	{
-		taskCategoryCreator();
-	}
-	else if (userOption == 2)
-	{
-		taskCategoryMenu();
-	}
-	else if (userOption == 3)
-	{
-		featureSelection();
-	}
-	*/
-
 	cout << "Alright, a new task category " << taskCategoryName << " has been created!\n\n";
 
 	optionList currentFeatures[] = { taskCategoryCreator, taskCategoryMenu, featureSelection };
@@ -505,7 +377,7 @@ void taskCategoryCreator()
 //Sends user to either task category menu, main menu, or allows for more tasks to be created based on user input
 void taskCategoryDeleter()
 {
-	using namespace std;
+	
 
 	string taskCategoryName = "";
 	int userOption = 0;
@@ -525,26 +397,6 @@ void taskCategoryDeleter()
 		}
 	}
 
-	/*
-	cout << "Alright, the task category " << taskCategoryName << " has been deleted!\nEnter 1 to return to delete another task category, 2 to return to the task category menu, and 3 to return to the main menu: ";
-	cin >> userOption;
-	cout << endl;
-
-	//Send user to new menu
-	if (userOption == 1)
-	{
-		taskCategoryDeleter();
-	}
-	else if (userOption == 2)
-	{
-		taskCategoryMenu();
-	}
-	else if (userOption == 3)
-	{
-		featureSelection();
-	}
-	*/
-
 	cout << "Alright, the task category " << taskCategoryName << " has been deleted!\n\n";
 
 	optionList currentFeatures[] = { taskCategoryDeleter, taskCategoryMenu, featureSelection };
@@ -561,9 +413,5 @@ void taskCategoryDeleter()
 //Function that ends program and fits into the optionList array
 void ender()
 {
-	std::cout << "";
+	cout << "";
 }
-
-
-
-//I have made the list class, I am not sure what changes have been made that might make this class useless, but I hope it can be of some use. Old menu code is still present, just commented out.
