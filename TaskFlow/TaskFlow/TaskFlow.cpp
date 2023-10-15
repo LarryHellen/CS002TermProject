@@ -4,20 +4,18 @@
 
 // Email Address: lhellen@go.pasadena.edu
 
-// Project Version: 0.2
+// Project Version: 0.3
 
 // Description: A task manager
 
 // Last Changed: October 14, 2023
 
 #include <iostream>
+#include <vector>
 using namespace std;
 
 int currentDate[3] = {}; //{year, month, date}
-const int maxTaskCategories = 10;
-const int maxTotalTasks = 10;
-string taskCategories[maxTaskCategories] = {};
-string totalTasks[maxTotalTasks] = {};
+vector<string> taskCategoriesList;
 
 typedef void(*optionList)(); //Data type for arrays that hold void functions
 
@@ -48,9 +46,28 @@ string ANOTHER_CAT = "Create another task category";
 string ANOTHER_DELETE_CAT = "Delete another category";
 string EXIT = "Exit program";
 
+//The class for the object Task, stores information about tasks
+class Task
+{
+	public:
+		string name;
+		string time;
+		string category;
+		string details;
+
+		Task(string taskName, string taskTime, string taskCategory, string taskDetails)
+		{
+			name = taskName;
+			time = taskTime;
+			category = taskCategory;
+			details = taskDetails;
+		}
+};
+
+vector<Task> taskList; //Contains all the tasks within the program
 
 //Class that creates menu objects that allow for various options to be provided to user
-class menu
+class Menu
 {
 public:
 	optionList* options; //Array of functions
@@ -65,7 +82,7 @@ public:
 		optionTitles = new string[length];
 		
 
-		for (int i = 0; i <= (len - 1); i++)
+		for (int i = 0; i < len; i++)
 		{
 			options[i] = list[i];
 			optionTitles[i] = messages[i];
@@ -77,7 +94,7 @@ public:
 	void menuChoice()
 	{
 		//Lists options for user
-		for (int i = 0; i <= (len - 1); i++)
+		for (int i = 0; i < len; i++)
 		{
 			int listNum = i + 1;
 
@@ -120,8 +137,6 @@ public:
 
 int main()
 {
-	
-
 	cout << "Welcome user!\n";
 	cout << "Please define some task categories first, such as work, dentist, birthday.\n\n";
 	taskCategoryCreator();
@@ -137,7 +152,7 @@ void featureSelection()
 	optionList currentFeatures2[] = { dateSelection, taskCategoryMenu, ender };
 	string optionNames2[] = { DATE_SELECT, CATEGORY_MENU, EXIT };
 
-	menu mainMenu;
+	Menu mainMenu;
 
 	//Only allow the user access to the task options if they have selected a date already
 	if (!(currentDate[0] == 0 && currentDate[1] == 0 && currentDate[2] == 0))
@@ -152,12 +167,10 @@ void featureSelection()
 	mainMenu.menuChoice();
 }
 
-//Overview: Create a new task based on player input and add its name into the totalTasks array. Note: nothing else about the task is stored for now
+//Overview: Create a new task based on player input and add its name into the totalTasks array.
 //Sends user to either main menu or allow more tasks to be created based on user input
 void taskCreation()
 {
-	
-
 	string taskName = "";
 	string taskTime = "";
 	string taskCategory = "";
@@ -181,22 +194,16 @@ void taskCreation()
 	cin >> details;
 	cout << endl;
 
-	//Find the first empty spot in the totalTasks array and add the task name there
-	for (int i = 0; i < maxTotalTasks; i++)
-	{
-		if (totalTasks[i] == "")
-		{
-			totalTasks[i] = taskName;
-			break;
-		}
-	}
+	//Create a new task and add it to the list of tasks
+	Task createdTask = Task(taskName, taskTime, taskCategory, details);
+	taskList.push_back(createdTask);
 
 	cout << "Alright, a new task " << taskName << " has been created!\n\n";
 
 	optionList currentFeatures[] = { taskCreation, featureSelection };
 	string optionNames[] = { ANOTHER_TASK, MAIN_MENU };
 
-	menu fromTaskCreation;
+	Menu fromTaskCreation;
 	fromTaskCreation.syncOptions(currentFeatures, optionNames, sizeof(currentFeatures) / sizeof(currentFeatures[0]));
 
 	fromTaskCreation.menuChoice();
@@ -206,8 +213,6 @@ void taskCreation()
 //Sends user to either main menu or allow more tasks to be deleted based on user input
 void taskDeletion()
 {
-	
-
 	string taskName = "";
 
 	int userOption = 0;
@@ -216,12 +221,12 @@ void taskDeletion()
 	cin >> taskName;
 	cout << endl;
 
-	//Find the task name in the array of totalTasks and set that position to be blank
-	for (int i = 0; i < maxTotalTasks; i++)
+	//Find the task name in list of tasks and remove that element
+	for (int i = 0; i < taskList.size(); i++)
 	{
-		if (totalTasks[i] == taskName)
+		if (taskList[i].name == taskName)
 		{
-			totalTasks[i] = "";
+			taskList.erase(taskList.begin() + i);
 			break;
 		}
 	}
@@ -231,7 +236,7 @@ void taskDeletion()
 	optionList currentFeatures[] = { taskDeletion, featureSelection };
 	string optionNames[] = { ANOTHER_DELETE_TASK, MAIN_MENU };
 
-	menu fromTaskDeletion;
+	Menu fromTaskDeletion;
 	fromTaskDeletion.syncOptions(currentFeatures, optionNames, sizeof(currentFeatures) / sizeof(currentFeatures[0]));
 
 	fromTaskDeletion.menuChoice();
@@ -243,13 +248,10 @@ void taskView()
 	
 
 	//Iterate through the list of tasks saved, and print all non empty tasks to the console.
-	cout << "Here are your current tasks (the maximum is 10):\n";
-	for (int i = 0; i < maxTotalTasks; i++)
+	cout << "Here are your current tasks:\n";
+	for (int i = 0; i < taskList.size(); i++)
 	{
-		if (totalTasks[i] != "")
-		{
-			cout << totalTasks[i] << endl;
-		}
+		cout << taskList[i].name;
 	}
 	featureSelection();
 }
@@ -284,7 +286,7 @@ void dateSelection()
 	optionList currentFeatures[] = { dateSelection, featureSelection };
 	string optionNames[] = { NEW_DATE, MAIN_MENU };
 
-	menu fromSetDate;
+	Menu fromSetDate;
 	fromSetDate.syncOptions(currentFeatures, optionNames, sizeof(currentFeatures) / sizeof(currentFeatures[0]));
 
 	fromSetDate.menuChoice();
@@ -299,51 +301,27 @@ void taskCategoryMenu()
 	int userOption = 0;
 
 	//Print all non empty task categories to console
-	cout << "Here are your current task categories (the maximum is 10):\n";
-	for (int i = 0; i < maxTaskCategories; i++)
+	cout << "Here are your current task categories:\n";
+	for (int i = 0; i < taskCategoriesList.size(); i++)
 	{
-		if (taskCategories[i] != "")
-		{
-			cout << taskCategories[i] << endl;
-		}
+		cout << taskCategoriesList[i] << endl;
+
 	}
 	cout << endl;
-
-	/*
-	cout << "What would you like to do? Enter 1 to create a new task category, 2 to delete a task category, and 3 to exit to the main menu: ";
-	cin >> userOption;
-	cout << endl;
-
-	//Send to new menu
-	if (userOption == 1)
-	{
-		taskCategoryCreator();
-	}
-	else if (userOption == 2)
-	{
-		taskCategoryDeleter();
-	}
-	else if (userOption == 3)
-	{
-		featureSelection();
-	}
-	*/
 
 	optionList currentFeatures[] = { taskCategoryCreator, taskCategoryDeleter, featureSelection };
 	string optionNames[] = { NEW_CAT, DELETE_CAT, MAIN_MENU };
 
-	menu fromCatMenu;
+	Menu fromCatMenu;
 	fromCatMenu.syncOptions(currentFeatures, optionNames, sizeof(currentFeatures) / sizeof(currentFeatures[0]));
 
 	fromCatMenu.menuChoice();
 }
 
-//Create a new task category based on player input and add its name into the taskCategories array
+//Create a new task category based on player input and add its name into the task categories list
 //Sends user to either task category menu, main menu, or allows for more tasks to be created based on user input
 void taskCategoryCreator()
 {
-	
-
 	string taskCategoryName = "";
 	int userOption = 0;
 
@@ -351,15 +329,7 @@ void taskCategoryCreator()
 	cin >> taskCategoryName;
 	cout << endl;
 
-	//Find the first empty spot in the taskCategories array and add the task category there
-	for (int i = 0; i < maxTaskCategories; i++)
-	{
-		if (taskCategories[i] == "")
-		{
-			taskCategories[i] = taskCategoryName;
-			break;
-		}
-	}
+	taskCategoriesList.push_back(taskCategoryName);
 
 	cout << "Alright, a new task category " << taskCategoryName << " has been created!\n\n";
 
@@ -367,7 +337,7 @@ void taskCategoryCreator()
 	string optionNames[] = { ANOTHER_CAT, CAT_MENU_RETURN, MAIN_MENU };
 	
 
-	menu fromCatCreate;
+	Menu fromCatCreate;
 	fromCatCreate.syncOptions(currentFeatures, optionNames, sizeof(currentFeatures) / sizeof(currentFeatures[0]));
 
 	fromCatCreate.menuChoice();
@@ -377,8 +347,6 @@ void taskCategoryCreator()
 //Sends user to either task category menu, main menu, or allows for more tasks to be created based on user input
 void taskCategoryDeleter()
 {
-	
-
 	string taskCategoryName = "";
 	int userOption = 0;
 
@@ -388,11 +356,11 @@ void taskCategoryDeleter()
 
 
 	//Find the task category name in the array of taskCategories and set that position to be blank
-	for (int i = 0; i < maxTaskCategories; i++)
+	for (int i = 0; i < taskCategoriesList.size(); i++)
 	{
-		if (taskCategories[i] == taskCategoryName)
+		if (taskCategoriesList[i] == taskCategoryName)
 		{
-			taskCategories[i] = "";
+			taskCategoriesList.erase(taskCategoriesList.begin() + i);
 			break;
 		}
 	}
@@ -402,7 +370,7 @@ void taskCategoryDeleter()
 	optionList currentFeatures[] = { taskCategoryDeleter, taskCategoryMenu, featureSelection };
 	string optionNames[] = { ANOTHER_DELETE_CAT, CAT_MENU_RETURN, MAIN_MENU };
 
-	menu fromCatDelete;
+	Menu fromCatDelete;
 	fromCatDelete.syncOptions(currentFeatures, optionNames, sizeof(currentFeatures) / sizeof(currentFeatures[0]));
 
 	fromCatDelete.menuChoice();
