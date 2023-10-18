@@ -4,33 +4,35 @@
 
 // Email Address: lhellen@go.pasadena.edu
 
-// Project Version: 0.3
+// Project Version: 0.4
 
 // Description: A task manager
 
-// Last Changed: October 14, 2023
+// Last Changed: October 17, 2023
 
 #include <iostream>
 #include <vector>
+#include <cctype>
 using namespace std;
 
-int currentDate[3] = {}; //{year, month, date}
-vector<string> taskCategoriesList;
-
 typedef void(*optionList)(); //Data type for arrays that hold void functions
+class Task;
+class Menu;
+
+vector<string> taskCategoriesList;
+vector<Task> taskList; //Contains all the tasks within the program
 
 void featureSelection();
 void taskCreation();
 void taskDeletion();
 void taskView();
-void dateSelection();
 void taskCategoryMenu();
 void taskCategoryCreator();
 void taskCategoryDeleter();
+int* stringToDate (string dateString);
 void ender();
 
 //Predefined messages for each option
-string DATE_SELECT = "Date selection";
 string NEW_DATE = "Enter a new date";
 string CATEGORY_MENU = "Task category menu";
 string NEW_TASK = "Create a new task";
@@ -46,6 +48,13 @@ string ANOTHER_CAT = "Create another task category";
 string ANOTHER_DELETE_CAT = "Delete another category";
 string EXIT = "Exit program";
 
+int main()
+{
+	cout << "Welcome user!\n";
+	cout << "Please define some task categories first, such as work, dentist, birthday.\n\n";
+	taskCategoryCreator();
+}
+
 //The class for the object Task, stores information about tasks
 class Task
 {
@@ -54,17 +63,33 @@ class Task
 		string time;
 		string category;
 		string details;
+		int day;
+		int month;
+		int year;
 
-		Task(string taskName, string taskTime, string taskCategory, string taskDetails)
+		//taskDate must be in the format MM/DD/YYYY
+		Task(string taskName, string taskDate, string taskTime, string taskCategory, string taskDetails)
 		{
 			name = taskName;
 			time = taskTime;
 			category = taskCategory;
 			details = taskDetails;
+			int* dateArr = stringToDate(taskDate);
+			day = dateArr[1];
+			month = dateArr[0];
+			year = dateArr[2];
 		}
+
+		string outputFormat()
+		{
+			string taskInfo = "";
+			taskInfo += category + " - " + name + " at " + time + ": " + details + ".";
+
+			return taskInfo;
+		}
+
 };
 
-vector<Task> taskList; //Contains all the tasks within the program
 
 //Class that creates menu objects that allow for various options to be provided to user
 class Menu
@@ -135,35 +160,17 @@ public:
 
 
 
-int main()
-{
-	cout << "Welcome user!\n";
-	cout << "Please define some task categories first, such as work, dentist, birthday.\n\n";
-	taskCategoryCreator();
-}
+
 
 //Serves as the main menu for the program, displaying and leading to all the other features based on user input.
 //Sends user to any of the menus availble based on input
 void featureSelection()
 {
-	optionList currentFeatures1[] = { dateSelection, taskCategoryMenu, taskCreation, taskDeletion, taskView, ender };
-	string optionNames1[] = { DATE_SELECT, CATEGORY_MENU, NEW_TASK, DELETE_TASK, VIEW_TASK, EXIT };
-
-	optionList currentFeatures2[] = { dateSelection, taskCategoryMenu, ender };
-	string optionNames2[] = { DATE_SELECT, CATEGORY_MENU, EXIT };
+	optionList currentFeatures1[] = { taskCategoryMenu, taskCreation, taskDeletion, taskView, ender };
+	string optionNames1[] = { CATEGORY_MENU, NEW_TASK, DELETE_TASK, VIEW_TASK, EXIT };
 
 	Menu mainMenu;
-
-	//Only allow the user access to the task options if they have selected a date already
-	if (!(currentDate[0] == 0 && currentDate[1] == 0 && currentDate[2] == 0))
-	{
-		mainMenu.syncOptions(currentFeatures1, optionNames1, sizeof(currentFeatures1) / sizeof(currentFeatures1[0]));
-	}
-	else
-	{
-		mainMenu.syncOptions(currentFeatures2, optionNames2, sizeof(currentFeatures2) / sizeof(currentFeatures2[0]));
-	}
-
+	mainMenu.syncOptions(currentFeatures1, optionNames1, sizeof(currentFeatures1) / sizeof(currentFeatures1[0]));
 	mainMenu.menuChoice();
 }
 
@@ -172,6 +179,7 @@ void featureSelection()
 void taskCreation()
 {
 	string taskName = "";
+	string taskDate = "";
 	string taskTime = "";
 	string taskCategory = "";
 	string details = "";
@@ -180,6 +188,10 @@ void taskCreation()
 	//Collect information about the new task
 	cout << "Enter the name for you task: ";
 	cin >> taskName;
+	cout << endl;
+
+	cout << "Enter the date for this task (in the form M/D/Y): ";
+	cin >> taskDate;
 	cout << endl;
 
 	cout << "Enter the time for this task: ";
@@ -195,7 +207,7 @@ void taskCreation()
 	cout << endl;
 
 	//Create a new task and add it to the list of tasks
-	Task createdTask = Task(taskName, taskTime, taskCategory, details);
+	Task createdTask = Task(taskName, taskDate, taskTime, taskCategory, details);
 	taskList.push_back(createdTask);
 
 	cout << "Alright, a new task " << taskName << " has been created!\n\n";
@@ -245,59 +257,32 @@ void taskDeletion()
 //Overview: Print the current saved tasks to the console, and send user to main menu
 void taskView()
 {
-	
+	string dateToView = "";
 
-	//Iterate through the list of tasks saved, and print all non empty tasks to the console.
-	cout << "Here are your current tasks:\n";
-	for (int i = 0; i < taskList.size(); i++)
+	cout << "Which date's tasks would you like to view (Format MM/DD/YYYY)? ";
+	cin >> dateToView;
+	int* dateArr = stringToDate(dateToView);
+	int day = dateArr[1];
+	int month = dateArr[0];
+	int year = dateArr[2];
+	
+	for(int i = 0; i < taskList.size(); i++)
 	{
-		cout << taskList[i].name;
+		if(day == taskList[i].day && month == taskList[i].month && year == taskList[i].year)
+		{
+			Task currentTask = taskList[i];
+			string stringOutput = currentTask.outputFormat();
+			cout << stringOutput << endl;
+		}
 	}
+
 	featureSelection();
-}
-
-//Prompts user for the date they want to modify and saves it to currentDate
-//Sends the user to the main menu or allows them to select a new date based on input
-void dateSelection()
-{
-	
-
-	int year = 0;
-	int month = 0;
-	int day = 0;
-	int userOption = 0;
-
-	cout << "Which year would you like to go to: ";
-	cin >> year;
-	cout << "Which month number would you like to go to (ex 4 for april): ";
-	cin >> month;
-	cout << "Which day would you like to go to: ";
-	cin >> day;
-	cout << endl;
-
-	//Save the date, month, and day to their locations in the array
-	currentDate[0] = year;
-	currentDate[1] = month;
-	currentDate[2] = day;
-
-	//Repeat their date back to them
-	cout << "Your selected date is (m/d/y): " << month << ", " << day << ", " << year << endl;
-
-	optionList currentFeatures[] = { dateSelection, featureSelection };
-	string optionNames[] = { NEW_DATE, MAIN_MENU };
-
-	Menu fromSetDate;
-	fromSetDate.syncOptions(currentFeatures, optionNames, sizeof(currentFeatures) / sizeof(currentFeatures[0]));
-
-	fromSetDate.menuChoice();
 }
 
 //Displays the current task categoreis created
 //Sends the user to task category creation, deletion, or main menu based on input
 void taskCategoryMenu()
 {
-	
-
 	int userOption = 0;
 
 	//Print all non empty task categories to console
@@ -376,7 +361,38 @@ void taskCategoryDeleter()
 	fromCatDelete.menuChoice();
 }
 
+//dateString must be in the format MM/DD/YYYY, the returned array will be in the format {MM, DD, YYYY}
+int* stringToDate (string dateString)
+{
+	int day;
+	int month;
+	int year;
 
+	//Iterate through the string, and collect the dates
+	int count = 0;
+	for(int i = 0; i < dateString.length(); i++)
+	{
+		if(dateString[i] == '/')
+		{
+			if(count == 0)
+			{
+				month = stoi(dateString.substr(0,i));
+				count = i + 1;
+			} else if(count > 0)
+			{
+				day = stoi(dateString.substr(count, i - count));
+				year = stoi(dateString.substr(i + 1));
+			}
+		}
+	}
+
+	int* dateArray = new int[3];
+	dateArray[0] = month;
+	dateArray[1] = day;
+	dateArray[2] = year;
+
+	return dateArray;
+}
 
 //Function that ends program and fits into the optionList array
 void ender()
