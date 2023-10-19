@@ -4,15 +4,16 @@
 
 // Email Address: lhellen@go.pasadena.edu
 
-// Project Version: 0.4
+// Project Version: 0.5
 
 // Description: A task manager
 
-// Last Changed: October 17, 2023
+// Last Changed: October 19, 2023
 
 #include <iostream>
 #include <vector>
 #include <cctype>
+#include <string>
 using namespace std;
 
 typedef void(*optionList)(); //Data type for arrays that hold void functions
@@ -29,24 +30,30 @@ void taskView();
 void taskCategoryMenu();
 void taskCategoryCreator();
 void taskCategoryDeleter();
+void editTask();
 int* stringToDate (string dateString);
 void ender();
 
 //Predefined messages for each option
-string NEW_DATE = "Enter a new date";
-string CATEGORY_MENU = "Task category menu";
-string NEW_TASK = "Create a new task";
-string DELETE_TASK = "Delete a task";
-string VIEW_TASK = "View your tasks";
-string ANOTHER_TASK = "Create another task";
-string ANOTHER_DELETE_TASK = "Delete another task";
-string MAIN_MENU = "Return to main menu";
-string CAT_MENU_RETURN = "Return to category menu";
-string NEW_CAT = "Create a new task category";
-string DELETE_CAT = "Delete a task category";
-string ANOTHER_CAT = "Create another task category";
-string ANOTHER_DELETE_CAT = "Delete another category";
-string EXIT = "Exit program";
+string const NEW_DATE = "Enter a new date";
+string const CATEGORY_MENU = "Task category menu";
+string const NEW_TASK = "Create a new task";
+string const DELETE_TASK = "Delete a task";
+string const VIEW_TASK = "View your tasks";
+string const EDIT_TASK = "Edit a task";
+string const ANOTHER_TASK = "Create another task";
+string const ANOTHER_DELETE_TASK = "Delete another task";
+string const MAIN_MENU = "Return to main menu";
+string const CAT_MENU_RETURN = "Return to category menu";
+string const NEW_CAT = "Create a new task category";
+string const DELETE_CAT = "Delete a task category";
+string const ANOTHER_CAT = "Create another task category";
+string const ANOTHER_DELETE_CAT = "Delete another category";
+string const EDIT_ANOTHER = "Edit another task";
+string const EXIT = "Exit program";
+
+int const MAX_TIME_LENGTH = 11, MAX_DETAILS_LENGTH = 100, MAX_CATEGORY_LENGTH = 20, MAX_NAME_LENGTH = 30, MAX_DATE_LENGTH = 11;
+
 
 int main()
 {
@@ -88,6 +95,33 @@ class Task
 			return taskInfo;
 		}
 
+		void editName(string newName)
+		{
+			name = newName;
+		}
+
+		void editTime(string newTime)
+		{
+			time = newTime;
+		}
+
+		void editCategory(string newCategory)
+		{
+			category = newCategory;
+		}
+
+		void editDetails(string newDetails)
+		{
+			details = newDetails;
+		}
+
+		void editDate(string newDate)
+		{
+			int* newDateArr = stringToDate(newDate);
+			day = newDateArr[1];
+			month = newDateArr[0];
+			year = newDateArr[2];
+		}
 };
 
 
@@ -166,11 +200,21 @@ public:
 //Sends user to any of the menus availble based on input
 void featureSelection()
 {
-	optionList currentFeatures1[] = { taskCategoryMenu, taskCreation, taskDeletion, taskView, ender };
-	string optionNames1[] = { CATEGORY_MENU, NEW_TASK, DELETE_TASK, VIEW_TASK, EXIT };
+	//If a task exists
+	optionList currentFeatures1[] = { taskCategoryMenu, taskCreation, taskDeletion, taskView, editTask, ender };
+	string optionNames1[] = { CATEGORY_MENU, NEW_TASK, DELETE_TASK, VIEW_TASK, EDIT_TASK, EXIT };
+
+	//If no tasks exist
+	optionList currentFeatures2[] = { taskCategoryMenu, taskCreation, ender };
+	string optionNames2[] = { CATEGORY_MENU, NEW_TASK, EXIT };
 
 	Menu mainMenu;
-	mainMenu.syncOptions(currentFeatures1, optionNames1, sizeof(currentFeatures1) / sizeof(currentFeatures1[0]));
+
+	if (taskList.size() == 0)
+		mainMenu.syncOptions(currentFeatures2, optionNames2, sizeof(currentFeatures2) / sizeof(currentFeatures2[0]));
+	else
+		mainMenu.syncOptions(currentFeatures1, optionNames1, sizeof(currentFeatures1) / sizeof(currentFeatures1[0]));
+
 	mainMenu.menuChoice();
 }
 
@@ -178,39 +222,37 @@ void featureSelection()
 //Sends user to either main menu or allow more tasks to be created based on user input
 void taskCreation()
 {
-	string taskName = "";
-	string taskDate = "";
-	string taskTime = "";
-	string taskCategory = "";
-	string details = "";
+	char taskName[MAX_NAME_LENGTH], taskDate[MAX_DATE_LENGTH], taskTime[MAX_TIME_LENGTH], taskCategory[MAX_CATEGORY_LENGTH], details[MAX_DETAILS_LENGTH];
 	int userOption = 0;
+
+	cin.ignore(); //Removes newline character to allow getline to work
 
 	//Collect information about the new task
 	cout << "Enter the name for you task: ";
-	cin >> taskName;
+	cin.getline(taskName, MAX_NAME_LENGTH); //Allows for multiword input
 	cout << endl;
 
 	cout << "Enter the date for this task (in the form M/D/Y): ";
-	cin >> taskDate;
+	cin.getline(taskDate, MAX_DATE_LENGTH);
 	cout << endl;
 
 	cout << "Enter the time for this task: ";
-	cin >> taskTime;
+	cin.getline(taskTime, MAX_TIME_LENGTH);
 	cout << endl;
 
 	cout << "Enter the category for this task: ";
-	cin >> taskCategory;
+	cin.getline(taskCategory, MAX_CATEGORY_LENGTH);
 	cout << endl;
 
 	cout << "Enter the details for this task: ";
-	cin >> details;
+	cin.getline(details, MAX_DETAILS_LENGTH);
 	cout << endl;
 
 	//Create a new task and add it to the list of tasks
 	Task createdTask = Task(taskName, taskDate, taskTime, taskCategory, details);
 	taskList.push_back(createdTask);
 
-	cout << "Alright, a new task " << taskName << " has been created!\n\n";
+	cout << "Alright, a new task \"" << taskName << "\" has been created!\n\n";
 
 	optionList currentFeatures[] = { taskCreation, featureSelection };
 	string optionNames[] = { ANOTHER_TASK, MAIN_MENU };
@@ -225,12 +267,13 @@ void taskCreation()
 //Sends user to either main menu or allow more tasks to be deleted based on user input
 void taskDeletion()
 {
-	string taskName = "";
+	char taskName[MAX_NAME_LENGTH];
 
 	int userOption = 0;
 
+	cin.ignore();
 	cout << "Enter the name of the task to delete: ";
-	cin >> taskName;
+	cin.getline(taskName, MAX_NAME_LENGTH); //Allows for multiword input
 	cout << endl;
 
 	//Find the task name in list of tasks and remove that element
@@ -359,6 +402,131 @@ void taskCategoryDeleter()
 	fromCatDelete.syncOptions(currentFeatures, optionNames, sizeof(currentFeatures) / sizeof(currentFeatures[0]));
 
 	fromCatDelete.menuChoice();
+}
+
+//Lets user choose which task to change and which aspect of that task to change
+//Sends user to main menu or lets them edit another task
+void editTask()
+{
+	char name[MAX_NAME_LENGTH], date[MAX_DATE_LENGTH], time[MAX_TIME_LENGTH], category[MAX_CATEGORY_LENGTH], details[MAX_DETAILS_LENGTH], choose[MAX_NAME_LENGTH];
+	bool fail = true;
+	int location, changeChoice;
+
+	for (int i = 0; i < taskList.size(); i++)
+	{
+		cout << "Tasks:\n" << taskList[i].name << endl;
+	}
+
+	while (true) //Ensures entered task exists
+	{
+		cout << endl << "Please select a task to edit: ";
+		cin.ignore();
+		cin.getline(choose, MAX_NAME_LENGTH);
+
+		for (int i = 0; i < taskList.size(); i++)
+		{
+			if (choose == taskList[i].name)
+			{
+				location = i; //Saves the index of the matching task
+				fail = false;
+				break;
+			}
+		}
+
+		if (fail)
+		{
+			cout << "Please enter the name of an existing task.";
+		}
+		else
+		{
+			break; //If input is valid, break from loop and continue
+		}
+	}
+	
+	//Displays aspects of chosen task
+	cout << "Date: " << taskList[location].month << "/" << taskList[location].day << "/" << taskList[location].year << endl;
+	cout << taskList[location].outputFormat() << endl;
+
+	while (true) //Ensures user enters valid input
+	{
+		bool invalid;
+
+		cout << "What aspect would you like to change?\n";
+		cout << "1. Name\n2. Date\n3. Time\n4. Category\n5. Details\n\n";
+		cin >> changeChoice;
+		invalid = cin.fail(); //Returns true if the wrong data type is entered
+
+		if (invalid)
+		{
+			cout << "Please enter the number corresponding with one of the choices.";
+
+			//Prevents eternal looping after cin.fail
+			cin.clear();
+			cin.ignore(numeric_limits<streamsize>::max(), '\n');
+		}
+		else if (changeChoice > 5 || changeChoice < 1 || changeChoice != floor(changeChoice)) //Makes sure the number is between 1 and 5
+		{
+			cout << "Please enter the number corresponding with one of the choices.";
+		}
+		else
+		{
+			break; //If input is valid, break from loop and continue
+		}
+	}
+
+	cin.ignore();
+
+	//Edits corresponding aspect of task
+	if (changeChoice == 1)
+	{
+		cout << "Enter the name for you task: ";
+		cin.getline(name, MAX_NAME_LENGTH);
+		cout << endl;
+
+		taskList[location].editName(name);
+	}
+	else if (changeChoice == 2)
+	{
+		cout << "Enter the date for this task (in the form M/D/Y): ";
+		cin.getline(date, MAX_DATE_LENGTH);
+		cout << endl;
+
+		taskList[location].editDate(date);
+	}
+	else if (changeChoice == 3)
+	{
+		cout << "Enter the time for this task: ";
+		cin.getline(time, MAX_TIME_LENGTH);
+		cout << endl;
+
+		taskList[location].editTime(time);
+	}
+	else if (changeChoice == 4)
+	{
+		cout << "Enter the category for this task: ";
+		cin.getline(category, MAX_CATEGORY_LENGTH);
+		cout << endl;
+
+		taskList[location].editCategory(category);
+	}
+	else if (changeChoice == 5)
+	{
+		cout << "Enter the details for this task: ";
+		cin.getline(details, MAX_DETAILS_LENGTH);
+		cout << endl;
+
+		taskList[location].editDetails(details);
+	}
+
+	cout << "Alright, the task has been changed!\n\n";
+
+	optionList currentFeatures[] = { editTask, featureSelection };
+	string optionNames[] = { EDIT_ANOTHER, MAIN_MENU };
+
+	Menu fromEditTask;
+	fromEditTask.syncOptions(currentFeatures, optionNames, sizeof(currentFeatures) / sizeof(currentFeatures[0]));
+
+	fromEditTask.menuChoice();
 }
 
 //dateString must be in the format MM/DD/YYYY, the returned array will be in the format {MM, DD, YYYY}

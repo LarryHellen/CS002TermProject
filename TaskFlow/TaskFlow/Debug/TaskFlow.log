@@ -1,2 +1,9 @@
 ﻿  TaskFlow.cpp
-  TaskFlow.vcxproj -> C:\Users\larry\Documents\cs002\CS002TermProject\TaskFlow\Debug\TaskFlow.exe
+C:\Users\Brentonli\source\repos\Lukas proj\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(280,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Brentonli\source\repos\Lukas proj\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(312,19): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Brentonli\source\repos\Lukas proj\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(333,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Brentonli\source\repos\Lukas proj\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(387,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Brentonli\source\repos\Lukas proj\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(415,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Brentonli\source\repos\Lukas proj\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(426,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Brentonli\source\repos\Lukas proj\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(541,19): warning C4018: '<': signed/unsigned mismatch
+  TaskFlow.vcxproj -> C:\Users\Brentonli\source\repos\Lukas proj\CS002TermProject\TaskFlow\Debug\TaskFlow.exe
