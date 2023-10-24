@@ -4,11 +4,11 @@
 
 // Email Address: lhellen@go.pasadena.edu
 
-// Project Version: 0.5
+// Project Version: 0.6
 
 // Description: A task manager
 
-// Last Changed: October 19, 2023
+// Last Changed: October 24, 2023
 
 #include <iostream>
 #include <vector>
@@ -35,8 +35,6 @@ int* stringToDate (string dateString);
 void ender();
 
 //Predefined messages for each option
-string const NEW_DATE = "Enter a new date";
-string const CATEGORY_MENU = "Task category menu";
 string const NEW_TASK = "Create a new task";
 string const DELETE_TASK = "Delete a task";
 string const VIEW_TASK = "View your tasks";
@@ -44,7 +42,6 @@ string const EDIT_TASK = "Edit a task";
 string const ANOTHER_TASK = "Create another task";
 string const ANOTHER_DELETE_TASK = "Delete another task";
 string const MAIN_MENU = "Return to main menu";
-string const CAT_MENU_RETURN = "Return to category menu";
 string const NEW_CAT = "Create a new task category";
 string const DELETE_CAT = "Delete a task category";
 string const ANOTHER_CAT = "Create another task category";
@@ -201,12 +198,12 @@ public:
 void featureSelection()
 {
 	//If a task exists
-	optionList currentFeatures1[] = { taskCategoryMenu, taskCreation, taskDeletion, taskView, editTask, ender };
-	string optionNames1[] = { CATEGORY_MENU, NEW_TASK, DELETE_TASK, VIEW_TASK, EDIT_TASK, EXIT };
+	optionList currentFeatures1[] = { taskCategoryCreator, taskCategoryDeleter, taskCreation, taskDeletion, taskView, editTask, ender };
+	string optionNames1[] = { NEW_CAT, DELETE_CAT, NEW_TASK, DELETE_TASK, VIEW_TASK, EDIT_TASK, EXIT };
 
 	//If no tasks exist
-	optionList currentFeatures2[] = { taskCategoryMenu, taskCreation, ender };
-	string optionNames2[] = { CATEGORY_MENU, NEW_TASK, EXIT };
+	optionList currentFeatures2[] = { taskCategoryCreator, taskCategoryDeleter, taskCreation, ender };
+	string optionNames2[] = { NEW_CAT, DELETE_CAT, NEW_TASK, EXIT };
 
 	Menu mainMenu;
 
@@ -240,9 +237,34 @@ void taskCreation()
 	cin.getline(taskTime, MAX_TIME_LENGTH);
 	cout << endl;
 
-	cout << "Enter the category for this task: ";
-	cin.getline(taskCategory, MAX_CATEGORY_LENGTH);
-	cout << endl;
+	
+
+	while (true) //Ensures entered task exists
+	{
+		bool fail = true;
+
+		cout << "Enter the category for this task: ";
+		cin.getline(taskCategory, MAX_CATEGORY_LENGTH);
+		cout << endl;
+
+		for (int i = 0; i < taskCategoriesList.size(); i++)
+		{
+			if (taskCategory == taskCategoriesList[i])
+			{
+				fail = false;
+				break;
+			}
+		}
+
+		if (fail)
+		{
+			cout << "Please enter the name of an existing category.\n";
+		}
+		else
+		{
+			break; //If input is valid, break from loop and continue
+		}
+	}
 
 	cout << "Enter the details for this task: ";
 	cin.getline(details, MAX_DETAILS_LENGTH);
@@ -301,49 +323,34 @@ void taskDeletion()
 void taskView()
 {
 	string dateToView = "";
+	bool wrong = true;
 
-	cout << "Which date's tasks would you like to view (Format MM/DD/YYYY)? ";
-	cin >> dateToView;
-	int* dateArr = stringToDate(dateToView);
-	int day = dateArr[1];
-	int month = dateArr[0];
-	int year = dateArr[2];
-	
-	for(int i = 0; i < taskList.size(); i++)
+	do
 	{
-		if(day == taskList[i].day && month == taskList[i].month && year == taskList[i].year)
+		cout << "Which date's tasks would you like to view (Format MM/DD/YYYY)? ";
+		cin >> dateToView;
+		int* dateArr = stringToDate(dateToView);
+		int day = dateArr[1];
+		int month = dateArr[0];
+		int year = dateArr[2];
+
+		for (int i = 0; i < taskList.size(); i++)
 		{
-			Task currentTask = taskList[i];
-			string stringOutput = currentTask.outputFormat();
-			cout << stringOutput << endl;
+			if (day == taskList[i].day && month == taskList[i].month && year == taskList[i].year)
+			{
+				Task currentTask = taskList[i];
+				string stringOutput = currentTask.outputFormat();
+				cout << stringOutput << endl << endl;
+				wrong = false;
+			}
 		}
-	}
+		
+		if (wrong)
+			cout << "Please enter a date where a task exists.\n";
+
+	} while (wrong);
 
 	featureSelection();
-}
-
-//Displays the current task categoreis created
-//Sends the user to task category creation, deletion, or main menu based on input
-void taskCategoryMenu()
-{
-	int userOption = 0;
-
-	//Print all non empty task categories to console
-	cout << "Here are your current task categories:\n";
-	for (int i = 0; i < taskCategoriesList.size(); i++)
-	{
-		cout << taskCategoriesList[i] << endl;
-
-	}
-	cout << endl;
-
-	optionList currentFeatures[] = { taskCategoryCreator, taskCategoryDeleter, featureSelection };
-	string optionNames[] = { NEW_CAT, DELETE_CAT, MAIN_MENU };
-
-	Menu fromCatMenu;
-	fromCatMenu.syncOptions(currentFeatures, optionNames, sizeof(currentFeatures) / sizeof(currentFeatures[0]));
-
-	fromCatMenu.menuChoice();
 }
 
 //Create a new task category based on player input and add its name into the task categories list
@@ -361,8 +368,8 @@ void taskCategoryCreator()
 
 	cout << "Alright, a new task category " << taskCategoryName << " has been created!\n\n";
 
-	optionList currentFeatures[] = { taskCategoryCreator, taskCategoryMenu, featureSelection };
-	string optionNames[] = { ANOTHER_CAT, CAT_MENU_RETURN, MAIN_MENU };
+	optionList currentFeatures[] = { taskCategoryCreator, featureSelection };
+	string optionNames[] = { ANOTHER_CAT, MAIN_MENU };
 	
 
 	Menu fromCatCreate;
@@ -377,6 +384,15 @@ void taskCategoryDeleter()
 {
 	string taskCategoryName = "";
 	int userOption = 0;
+
+	//Print all non empty task categories to console
+	cout << "Here are your current task categories:\n";
+	for (int i = 0; i < taskCategoriesList.size(); i++)
+	{
+		cout << taskCategoriesList[i] << endl;
+
+	}
+	cout << endl;
 
 	cout << "Enter the name of the cateogory you want to delete: ";
 	cin >> taskCategoryName;
@@ -395,8 +411,8 @@ void taskCategoryDeleter()
 
 	cout << "Alright, the task category " << taskCategoryName << " has been deleted!\n\n";
 
-	optionList currentFeatures[] = { taskCategoryDeleter, taskCategoryMenu, featureSelection };
-	string optionNames[] = { ANOTHER_DELETE_CAT, CAT_MENU_RETURN, MAIN_MENU };
+	optionList currentFeatures[] = { taskCategoryDeleter, featureSelection };
+	string optionNames[] = { ANOTHER_DELETE_CAT, MAIN_MENU };
 
 	Menu fromCatDelete;
 	fromCatDelete.syncOptions(currentFeatures, optionNames, sizeof(currentFeatures) / sizeof(currentFeatures[0]));
