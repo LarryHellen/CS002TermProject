@@ -14,6 +14,8 @@
 #include <vector>
 #include <cctype>
 #include <string>
+#include <fstream>
+#include <iostream>
 using namespace std;
 
 typedef void(*optionList)(); //Data type for arrays that hold void functions
@@ -190,7 +192,43 @@ public:
 };
 
 
+void saveToFile()
+{
+	ofstream saveFile;
+	string saveContents;
 
+	saveContents = "TASKLIST";
+
+	for (int i = 0; i < taskList.size(); i++)
+	{
+		saveContents += taskList[i].outputFormat() + "\n";
+	}
+
+	saveContents += "CATLIST";
+
+	for (int i = 0; i < taskCategoriesList[i].size(); i++)
+	{
+		saveContents += taskCategoriesList[i] + "\n";
+	}
+
+	saveFile.open("save_file");
+
+	saveFile << saveContents;
+
+	saveFile.close();
+}
+
+void loadFromFile()
+{
+	ifstream saveFile;
+	string saveContents;
+
+	saveFile.open("save_file");
+
+	//retreive info and set
+
+	saveFile.close();
+}
 
 
 //Serves as the main menu for the program, displaying and leading to all the other features based on user input.
