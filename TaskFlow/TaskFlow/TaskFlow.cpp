@@ -29,7 +29,8 @@ void featureSelection();
 void taskCreation();
 void taskDeletion();
 void taskView();
-void taskCategoryMenu();
+void taskViewAll();
+void viewChoice();
 void taskCategoryCreator();
 void taskCategoryDeleter();
 void editTask();
@@ -40,6 +41,8 @@ void ender();
 string const NEW_TASK = "Create a new task";
 string const DELETE_TASK = "Delete a task";
 string const VIEW_TASK = "View your tasks";
+string const VIEW_ONE = "View a specific date's tasks";
+string const VIEW_ALL = "View all of your taks";
 string const EDIT_TASK = "Edit a task";
 string const ANOTHER_TASK = "Create another task";
 string const ANOTHER_DELETE_TASK = "Delete another task";
@@ -236,7 +239,7 @@ void loadFromFile()
 void featureSelection()
 {
 	//If a task exists
-	optionList currentFeatures1[] = { taskCategoryCreator, taskCategoryDeleter, taskCreation, taskDeletion, taskView, editTask, ender };
+	optionList currentFeatures1[] = { taskCategoryCreator, taskCategoryDeleter, taskCreation, taskDeletion, viewChoice, editTask, ender };
 	string optionNames1[] = { NEW_CAT, DELETE_CAT, NEW_TASK, DELETE_TASK, VIEW_TASK, EDIT_TASK, EXIT };
 
 	//If no tasks exist
@@ -378,17 +381,43 @@ void taskView()
 			{
 				Task currentTask = taskList[i];
 				string stringOutput = currentTask.outputFormat();
-				cout << stringOutput << endl << endl;
+				cout << stringOutput << endl;
 				wrong = false;
 			}
 		}
 		
 		if (wrong)
 			cout << "Please enter a date where a task exists.\n";
+		else
+			cout << endl;
 
 	} while (wrong);
 
 	featureSelection();
+}
+
+void taskViewAll()
+{
+	for (Task n : taskList)
+	{
+		string stringOutput = n.outputFormat();
+		cout << n.month << "/" << n.day << "/" << n.year << ":" << endl;
+		cout << stringOutput << endl;
+	}
+	cout << endl;
+
+	featureSelection();
+}
+
+void viewChoice()
+{
+	optionList viewOptions[] = { taskView, taskViewAll };
+	string optionNames[] = { VIEW_ONE, VIEW_ALL};
+
+	Menu viewMenu;
+
+	viewMenu.syncOptions(viewOptions, optionNames, sizeof(viewOptions) / sizeof(viewOptions[0]));
+	viewMenu.menuChoice();
 }
 
 //Create a new task category based on player input and add its name into the task categories list
