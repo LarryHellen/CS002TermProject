@@ -4,7 +4,7 @@
 
 // Email Address: lhellen@go.pasadena.edu
 
-// Project Version: 0.6
+// Project Version: 0.7
 
 // Description: A task manager
 
@@ -89,10 +89,49 @@ class Task
 			year = dateArr[2];
 		}
 
-		string outputFormat()
+		Task(string inputFormat)
+		{
+			int nameIndex = inputFormat.find('{') + 1;
+			int timeIndex = inputFormat.find('}') + 1;
+			int detailsIndex = inputFormat.find('|') + 1;
+			int monthIndex = inputFormat.find('~') + 1;
+			int dayIndex = inputFormat.find('%') + 1;
+			int yearIndex = inputFormat.find('^') + 1;
+
+			category = setInfoFromSave(inputFormat, 0, (nameIndex - 1));
+			name = setInfoFromSave(inputFormat, nameIndex, timeIndex);
+			time = setInfoFromSave(inputFormat, timeIndex, detailsIndex);
+			details = setInfoFromSave(inputFormat, detailsIndex, monthIndex);
+			month = stoi(setInfoFromSave(inputFormat, monthIndex, dayIndex));
+			day = stoi(setInfoFromSave(inputFormat, dayIndex, yearIndex));
+			year = stoi(setInfoFromSave(inputFormat, yearIndex, -1));
+		}
+
+		string setInfoFromSave(string inputFormat, int firstIndex, int secondIndex)
+		{
+			string info = "";
+			if (secondIndex != -1)
+			{
+				info = inputFormat.substr(firstIndex, (secondIndex - firstIndex - 1));
+			}
+			else
+			{
+				info = inputFormat.substr(firstIndex);
+			}
+			return info;
+		}
+
+		string outputFormat(bool isSave = false)
 		{
 			string taskInfo = "";
-			taskInfo += category + " - " + name + " at " + time + ": " + details + ".";
+			if (isSave)
+			{
+				taskInfo += category + "{" + name + "}" + time + "|" + details + "~" + to_string(month) + "%" + to_string(day) + "^" + to_string(year);
+			}
+			else
+			{
+				taskInfo += category + " - " + name + " at " + time + ": " + details + ".";
+			}
 
 			return taskInfo;
 		}
@@ -194,20 +233,69 @@ public:
 	}
 };
 
+void loadFromFile()
+{
+	ifstream saveFile;
+	string fileStart;
+	int taskSizeIndex;
+	int taskSize;
+	int catSizeIndex;
+	int catSize;
+
+	saveFile.open("save_file");
+
+	saveFile >> fileStart;
+
+	taskSizeIndex = fileStart.find(':') + 1;
+	taskSize = stoi(fileStart.substr(taskSizeIndex));
+	
+	taskList.clear();
+
+	for (int i = 0; i < taskSize; i++)
+	{
+		string taskContents;
+		getline(saveFile, taskContents);
+
+		Task loadedTask = Task(taskContents);
+		
+		taskList.push_back(loadedTask);
+	}
+
+	saveFile >> fileStart;
+
+	catSizeIndex = fileStart.find(':') + 1;
+	catSize = stoi(fileStart.substr(catSizeIndex));
+
+	taskCategoriesList.clear();
+
+	for (int i = 0; i < catSize; i++)
+	{
+		string catName;
+		getline(saveFile, catName);
+
+		taskCategoriesList.push_back(catName);
+	}
+
+	saveFile.close();
+}
+
 
 void saveToFile()
 {
 	ofstream saveFile;
 	string saveContents;
 
-	saveContents = "TASKLIST";
+	string taskSize = to_string(taskList.size());
+	saveContents = "TASKLIST" + ':' + taskSize;
+	
 
 	for (int i = 0; i < taskList.size(); i++)
 	{
-		saveContents += taskList[i].outputFormat() + "\n";
+		saveContents += taskList[i].outputFormat(true) + "\n";
 	}
 
-	saveContents += "CATLIST";
+	string catSize = to_string(taskCategoriesList.size());
+	saveContents += "CATLIST" + ':' + catSize;
 
 	for (int i = 0; i < taskCategoriesList[i].size(); i++)
 	{
@@ -221,17 +309,6 @@ void saveToFile()
 	saveFile.close();
 }
 
-void loadFromFile()
-{
-	ifstream saveFile;
-	string saveContents;
-
-	saveFile.open("save_file");
-
-	//retreive info and set
-
-	saveFile.close();
-}
 
 
 //Serves as the main menu for the program, displaying and leading to all the other features based on user input.
