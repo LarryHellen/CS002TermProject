@@ -24,16 +24,24 @@ class Menu;
 
 vector<string> taskCategoriesList;
 vector<Task> taskList; //Contains all the tasks within the program
+vector<Task> viewingList; //Version of taskList that is edited by view settings function
+int settings[]{ 0 , 0 }; //Holds the results of the view settings function
 
 void featureSelection();
 void taskCreation();
 void taskDeletion();
 void taskView();
 void taskViewAll();
+void viewSettings();
+void sortByPriority();
+void sortByDate();
 void viewChoice();
 void taskCategoryCreator();
 void taskCategoryDeleter();
 void editTask();
+void completeTask();
+void removeCompleted();
+void applySettings();
 int* stringToDate (string dateString);
 void ender();
 
@@ -42,7 +50,7 @@ string const NEW_TASK = "Create a new task";
 string const DELETE_TASK = "Delete a task";
 string const VIEW_TASK = "View your tasks";
 string const VIEW_ONE = "View a specific date's tasks";
-string const VIEW_ALL = "View all of your taks";
+string const VIEW_ALL = "View all of your tasks";
 string const EDIT_TASK = "Edit a task";
 string const ANOTHER_TASK = "Create another task";
 string const ANOTHER_DELETE_TASK = "Delete another task";
@@ -52,9 +60,12 @@ string const DELETE_CAT = "Delete a task category";
 string const ANOTHER_CAT = "Create another task category";
 string const ANOTHER_DELETE_CAT = "Delete another category";
 string const EDIT_ANOTHER = "Edit another task";
+string const COMPLETE_TASK = "Set a task to completed";
+string const COMPLETE_ANOTHER_TASK = "Set another task to completed";
+string const VIEW_SETTINGS = "Change your view settings";
 string const EXIT = "Exit program";
 
-int const MAX_TIME_LENGTH = 11, MAX_DETAILS_LENGTH = 100, MAX_CATEGORY_LENGTH = 20, MAX_NAME_LENGTH = 30, MAX_DATE_LENGTH = 11;
+int const MAX_TIME_LENGTH = 11, MAX_DETAILS_LENGTH = 100, MAX_CATEGORY_LENGTH = 20, MAX_NAME_LENGTH = 30, MAX_DATE_LENGTH = 11, MAX_PRIORITY_LENGTH = 7;
 
 
 int main()
@@ -71,17 +82,20 @@ class Task
 		string name;
 		string time;
 		string category;
+		string priority;
 		string details;
+		string completion = "false";
 		int day;
 		int month;
 		int year;
 
 		//taskDate must be in the format MM/DD/YYYY
-		Task(string taskName, string taskDate, string taskTime, string taskCategory, string taskDetails)
+		Task(string taskName, string taskDate, string taskTime, string taskCategory, string taskPriority, string taskDetails)
 		{
 			name = taskName;
 			time = taskTime;
 			category = taskCategory;
+			priority = taskPriority;
 			details = taskDetails;
 			int* dateArr = stringToDate(taskDate);
 			day = dateArr[1];
@@ -94,6 +108,8 @@ class Task
 			int nameIndex = inputFormat.find('{') + 1;
 			int timeIndex = inputFormat.find('}') + 1;
 			int detailsIndex = inputFormat.find('|') + 1;
+			int priorityIndex = inputFormat.find('-') + 1;
+			int completionIndex = inputFormat.find('@') + 1;
 			int monthIndex = inputFormat.find('~') + 1;
 			int dayIndex = inputFormat.find('%') + 1;
 			int yearIndex = inputFormat.find('^') + 1;
@@ -101,7 +117,9 @@ class Task
 			category = setInfoFromSave(inputFormat, 0, (nameIndex - 1));
 			name = setInfoFromSave(inputFormat, nameIndex, timeIndex);
 			time = setInfoFromSave(inputFormat, timeIndex, detailsIndex);
-			details = setInfoFromSave(inputFormat, detailsIndex, monthIndex);
+			details = setInfoFromSave(inputFormat, detailsIndex, priorityIndex);
+			priority = setInfoFromSave(inputFormat, priorityIndex, completionIndex);
+			completion = setInfoFromSave(inputFormat, completionIndex, monthIndex);
 			month = stoi(setInfoFromSave(inputFormat, monthIndex, dayIndex));
 			day = stoi(setInfoFromSave(inputFormat, dayIndex, yearIndex));
 			year = stoi(setInfoFromSave(inputFormat, yearIndex, -1));
@@ -126,11 +144,11 @@ class Task
 			string taskInfo = "";
 			if (isSave)
 			{
-				taskInfo += category + "{" + name + "}" + time + "|" + details + "~" + to_string(month) + "%" + to_string(day) + "^" + to_string(year);
+				taskInfo += category + "{" + name + "}" + time + "|" + details + "-" + priority + '@' + completion + "~" + to_string(month) + "%" + to_string(day) + "^" + to_string(year);
 			}
 			else
 			{
-				taskInfo += category + " - " + name + " at " + time + ": " + details + ".";
+				taskInfo += category + " - " + name + " at " + time + ": " + details + "- " + priority + " priority| Completed: " + completion + ".";
 			}
 
 			return taskInfo;
@@ -151,6 +169,11 @@ class Task
 			category = newCategory;
 		}
 
+		void editPriority(string newPriority)
+		{
+			priority = newPriority;
+		}
+
 		void editDetails(string newDetails)
 		{
 			details = newDetails;
@@ -162,6 +185,11 @@ class Task
 			day = newDateArr[1];
 			month = newDateArr[0];
 			year = newDateArr[2];
+		}
+
+		void completeTask()
+		{
+			completion = "true";
 		}
 };
 
@@ -316,8 +344,8 @@ void saveToFile()
 void featureSelection()
 {
 	//If a task exists
-	optionList currentFeatures1[] = { taskCategoryCreator, taskCategoryDeleter, taskCreation, taskDeletion, viewChoice, editTask, ender };
-	string optionNames1[] = { NEW_CAT, DELETE_CAT, NEW_TASK, DELETE_TASK, VIEW_TASK, EDIT_TASK, EXIT };
+	optionList currentFeatures1[] = { taskCategoryCreator, taskCategoryDeleter, taskCreation, taskDeletion, viewChoice, viewSettings, editTask, completeTask, ender };
+	string optionNames1[] = { NEW_CAT, DELETE_CAT, NEW_TASK, DELETE_TASK, VIEW_TASK, VIEW_SETTINGS, EDIT_TASK, COMPLETE_TASK, EXIT };
 
 	//If no tasks exist
 	optionList currentFeatures2[] = { taskCategoryCreator, taskCategoryDeleter, taskCreation, ender };
@@ -337,7 +365,7 @@ void featureSelection()
 //Sends user to either main menu or allow more tasks to be created based on user input
 void taskCreation()
 {
-	char taskName[MAX_NAME_LENGTH], taskDate[MAX_DATE_LENGTH], taskTime[MAX_TIME_LENGTH], taskCategory[MAX_CATEGORY_LENGTH], details[MAX_DETAILS_LENGTH];
+	char taskName[MAX_NAME_LENGTH], taskDate[MAX_DATE_LENGTH], taskTime[MAX_TIME_LENGTH], taskCategory[MAX_CATEGORY_LENGTH], details[MAX_DETAILS_LENGTH], priority[MAX_PRIORITY_LENGTH];
 	int userOption = 0;
 
 	cin.ignore(); //Removes newline character to allow getline to work
@@ -384,13 +412,29 @@ void taskCreation()
 		}
 	}
 
+	while (true)
+	{
+		cout << "Enter the priority of the task (low, medium, high): ";
+		cin.getline(priority, MAX_PRIORITY_LENGTH);
+		string fixedPriority = priority;
+
+		if (fixedPriority != "low" && fixedPriority != "medium" && fixedPriority != "high")
+			cout << "Please enter \"low\", \"medium\", or \"high\"" << endl;
+		else
+			break;
+	}
+	cout << endl;
+
 	cout << "Enter the details for this task: ";
 	cin.getline(details, MAX_DETAILS_LENGTH);
 	cout << endl;
 
 	//Create a new task and add it to the list of tasks
-	Task createdTask = Task(taskName, taskDate, taskTime, taskCategory, details);
+	Task createdTask = Task(taskName, taskDate, taskTime, taskCategory, priority, details);
 	taskList.push_back(createdTask);
+	viewingList.push_back(createdTask);
+
+	applySettings();
 
 	cout << "Alright, a new task \"" << taskName << "\" has been created!\n\n";
 
@@ -422,6 +466,7 @@ void taskDeletion()
 		if (taskList[i].name == taskName)
 		{
 			taskList.erase(taskList.begin() + i);
+			applySettings();
 			break;
 		}
 	}
@@ -437,7 +482,7 @@ void taskDeletion()
 	fromTaskDeletion.menuChoice();
 }
 
-//Overview: Print the current saved tasks to the console, and send user to main menu
+//Overview: Print the current saved tasks of a certain date to the console, and send user to main menu
 void taskView()
 {
 	string dateToView = "";
@@ -473,9 +518,10 @@ void taskView()
 	featureSelection();
 }
 
+//Overview: Print all current saved tasks to the console, and send user to main menu
 void taskViewAll()
 {
-	for (Task n : taskList)
+	for (Task n : viewingList)
 	{
 		string stringOutput = n.outputFormat();
 		cout << n.month << "/" << n.day << "/" << n.year << ":" << endl;
@@ -486,6 +532,7 @@ void taskViewAll()
 	featureSelection();
 }
 
+//Overview: Menu that allows user to view all tasks or specific tasks
 void viewChoice()
 {
 	optionList viewOptions[] = { taskView, taskViewAll };
@@ -495,6 +542,132 @@ void viewChoice()
 
 	viewMenu.syncOptions(viewOptions, optionNames, sizeof(viewOptions) / sizeof(viewOptions[0]));
 	viewMenu.menuChoice();
+}
+
+//Overview: Allows user to change the order in which tasks are displayed when viewing all settings and decide whether they want to view completed tasks or not
+void viewSettings()
+{
+	int sorting;
+	string completion;
+
+	cout << "Current View Settings:" << endl;
+
+	switch (static_cast<char>(settings[0]))
+	{
+	case '\0':
+		cout << "Sorted by order added" << endl;
+		break;
+	case '\1':
+		cout << "Sorted by date" << endl;
+		break;
+	case '\2':
+		cout << "Sorted by priority" << endl;
+		break;
+	}
+
+	switch (static_cast<char>(settings[1]))
+	{
+	case '\0':
+		cout << "View all tasks" << endl;
+		break;
+	case '\1':
+		cout << "View uncompleted tasks only" << endl;
+		break;
+	}
+	cout << endl;
+
+	viewingList = taskList;
+
+	while (true)
+	{
+		cout << "Would you like to sort by (1) order added, (2) by date, or (3) by priority?: ";
+		cin >> sorting;
+
+		if (sorting == 1)
+		{
+			settings[0] = 0;
+			break;
+		}
+		else if (sorting == 2)
+		{
+			sortByDate();
+			settings[0] = 1;
+			break;
+		}
+		else if (sorting == 3)
+		{
+			sortByPriority();
+			settings[0] = 2;
+			break;
+		}
+		else
+		{
+			cout << "Please enter either 1, 2, or 3." << endl;
+		}
+	}
+
+	while (true)
+	{
+		cout << "Would you like to only view uncompleted tasks?(yes/no): ";
+		cin >> completion;
+
+		if (completion == "yes")
+		{
+			removeCompleted();
+			settings[1] = 1;
+			break;
+		}
+		else if (completion == "no")
+		{
+			settings[1] = 0;
+			break;
+		}
+		else
+		{
+			cout << "Please enter either \"yes\" or \"no\"." << endl;
+		}
+	}
+	cout << endl;
+
+	featureSelection();
+}
+
+//Overview: Sorts tasks of the viewing list from highest to lowest priority
+void sortByPriority()
+{
+	Task intermediary = Task("n", "0/0/0", "n", "n", "n", "n");
+
+	for (int i = 0; i < viewingList.size(); i++)
+	{
+		for (int n = i + 1; n < viewingList.size(); n++)
+		{
+			if ((viewingList[i].priority == "low" && (viewingList[n].priority == "medium" || viewingList[n].priority == "high")) || (viewingList[i].priority == "medium" && viewingList[n].priority == "high"))
+			{
+				intermediary = viewingList[n];
+				viewingList[n] = viewingList[i];
+				viewingList[i] = intermediary;
+			}
+		}
+	}
+}
+
+//Overview: Sorts tasks of the viewing list from earliest to latest date
+void sortByDate()
+{
+	Task intermediary = Task("n", "0/0/0", "n", "n", "n", "n");
+
+	for (int i = 0; i < viewingList.size(); i++)
+	{
+		for (int n = i + 1; n < viewingList.size(); n++)
+		{
+			if (viewingList[i].year > viewingList[n].year || (viewingList[i].year == viewingList[n].year && viewingList[i].month > viewingList[n].month) || (viewingList[i].year == viewingList[n].year && viewingList[i].month == viewingList[n].month && viewingList[i].day > viewingList[n].day))
+			{
+				intermediary = viewingList[n];
+				viewingList[n] = viewingList[i];
+				viewingList[i] = intermediary;
+			}
+		}
+	}
 }
 
 //Create a new task category based on player input and add its name into the task categories list
@@ -568,13 +741,14 @@ void taskCategoryDeleter()
 //Sends user to main menu or lets them edit another task
 void editTask()
 {
-	char name[MAX_NAME_LENGTH], date[MAX_DATE_LENGTH], time[MAX_TIME_LENGTH], category[MAX_CATEGORY_LENGTH], details[MAX_DETAILS_LENGTH], choose[MAX_NAME_LENGTH];
+	char name[MAX_NAME_LENGTH], date[MAX_DATE_LENGTH], time[MAX_TIME_LENGTH], category[MAX_CATEGORY_LENGTH], details[MAX_DETAILS_LENGTH], choose[MAX_NAME_LENGTH], priority[MAX_PRIORITY_LENGTH];
 	bool fail = true;
 	int location, changeChoice;
 
+	cout << "Tasks\n";
 	for (int i = 0; i < taskList.size(); i++)
 	{
-		cout << "Tasks:\n" << taskList[i].name << endl;
+		cout << taskList[i].name << endl;
 	}
 
 	while (true) //Ensures entered task exists
@@ -612,7 +786,7 @@ void editTask()
 		bool invalid;
 
 		cout << "What aspect would you like to change?\n";
-		cout << "1. Name\n2. Date\n3. Time\n4. Category\n5. Details\n\n";
+		cout << "1. Name\n2. Date\n3. Time\n4. Category\n5. Priority\n6. Details\n\nEnter here: ";
 		cin >> changeChoice;
 		invalid = cin.fail(); //Returns true if the wrong data type is entered
 
@@ -624,7 +798,7 @@ void editTask()
 			cin.clear();
 			cin.ignore(numeric_limits<streamsize>::max(), '\n');
 		}
-		else if (changeChoice > 5 || changeChoice < 1 || changeChoice != floor(changeChoice)) //Makes sure the number is between 1 and 5
+		else if (changeChoice > 6 || changeChoice < 1 || changeChoice != floor(changeChoice)) //Makes sure the number is between 1 and 5
 		{
 			cout << "Please enter the number corresponding with one of the choices.";
 		}
@@ -649,7 +823,6 @@ void editTask()
 	{
 		cout << "Enter the date for this task (in the form M/D/Y): ";
 		cin.getline(date, MAX_DATE_LENGTH);
-		cout << endl;
 
 		taskList[location].editDate(date);
 	}
@@ -671,12 +844,22 @@ void editTask()
 	}
 	else if (changeChoice == 5)
 	{
+		cout << "Enter the priority for this task: ";
+		cin.getline(priority, MAX_PRIORITY_LENGTH);
+		cout << endl;
+
+		taskList[location].editPriority(priority);
+	}
+	else if (changeChoice == 6)
+	{
 		cout << "Enter the details for this task: ";
 		cin.getline(details, MAX_DETAILS_LENGTH);
 		cout << endl;
 
 		taskList[location].editDetails(details);
 	}
+
+	applySettings();
 
 	cout << "Alright, the task has been changed!\n\n";
 
@@ -687,6 +870,84 @@ void editTask()
 	fromEditTask.syncOptions(currentFeatures, optionNames, sizeof(currentFeatures) / sizeof(currentFeatures[0]));
 
 	fromEditTask.menuChoice();
+}
+
+//Overview: Allows the user to mark a task as complete
+void completeTask()
+{
+	char taskName[MAX_NAME_LENGTH];
+	bool match = false;
+
+	for (Task n : taskList)
+	{
+		if (n.completion == "false")
+			cout << n.outputFormat() << endl;
+	}
+	cout << endl;
+
+	cin.ignore();
+	do
+	{
+		cout << "Enter the name of the task you completed: ";
+		cin.getline(taskName, MAX_NAME_LENGTH);
+
+		string stringName = taskName;
+		for (Task& n : taskList)
+		{
+			if (stringName == n.name)
+			{
+				n.completeTask();
+				match = true;
+			}
+		}
+
+		for (Task& n : viewingList)
+		{
+			if (stringName == n.name)
+			{
+				n.completeTask();
+
+				applySettings();
+			}
+		}
+
+		if (!match)
+			cout << "Please enter the name of an existing task." << endl;
+
+	} while (!match);
+	cout << endl;
+
+	optionList currentFeatures[] = { completeTask, featureSelection };
+	string optionNames[] = { COMPLETE_ANOTHER_TASK, MAIN_MENU };
+
+	Menu fromCompleteTask;
+	fromCompleteTask.syncOptions(currentFeatures, optionNames, sizeof(currentFeatures) / sizeof(currentFeatures[0]));
+
+	fromCompleteTask.menuChoice();
+}
+
+//Overview: Removes tasks from the viewing list if they are marked as completed
+void removeCompleted()
+{
+	for (int i = 0; i < viewingList.size(); i++)
+	{
+		if (viewingList[i].completion == "true")
+			viewingList.erase(viewingList.begin() + i);
+	}
+}
+
+//Reapplies settings decided in the viewSettings function
+void applySettings()
+{
+	viewingList = taskList;
+
+	if (settings[0] == 1)
+		sortByDate();
+	else if (settings[0] == 2)
+		sortByPriority();
+
+	if (settings[1])
+		removeCompleted();
 }
 
 //dateString must be in the format MM/DD/YYYY, the returned array will be in the format {MM, DD, YYYY}
