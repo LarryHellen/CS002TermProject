@@ -27,6 +27,8 @@ vector<Task> taskList; //Contains all the tasks within the program
 vector<Task> viewingList; //Version of taskList that is edited by view settings function
 int settings[]{ 0 , 0 }; //Holds the results of the view settings function
 
+bool loadFromFile();
+void saveToFile();
 void featureSelection();
 void taskCreation();
 void taskDeletion();
@@ -67,13 +69,23 @@ string const EXIT = "Exit program";
 
 int const MAX_TIME_LENGTH = 11, MAX_DETAILS_LENGTH = 100, MAX_CATEGORY_LENGTH = 20, MAX_NAME_LENGTH = 30, MAX_DATE_LENGTH = 11, MAX_PRIORITY_LENGTH = 7;
 
+string const SAVE_FILE_NAME = "save_file";
 
 int main()
 {
 	cout << "Welcome user!\n";
-	cout << "Please define some task categories first, such as work, dentist, birthday.\n\n";
-	taskCategoryCreator();
+	if (loadFromFile())
+	{
+		featureSelection();
+	}
+	else
+	{
+		cout << "Please define some task categories first, such as work, dentist, birthday.\n\n";
+		taskCategoryCreator();
+	}
+	
 }
+
 
 //The class for the object Task, stores information about tasks
 class Task
@@ -108,13 +120,13 @@ class Task
 			int nameIndex = inputFormat.find('{') + 1;
 			int timeIndex = inputFormat.find('}') + 1;
 			int detailsIndex = inputFormat.find('|') + 1;
-			int priorityIndex = inputFormat.find('-') + 1;
+			int priorityIndex = inputFormat.find('[') + 1;
 			int completionIndex = inputFormat.find('@') + 1;
 			int monthIndex = inputFormat.find('~') + 1;
 			int dayIndex = inputFormat.find('%') + 1;
 			int yearIndex = inputFormat.find('^') + 1;
 
-			category = setInfoFromSave(inputFormat, 0, (nameIndex - 1));
+			category = setInfoFromSave(inputFormat, 0, nameIndex);
 			name = setInfoFromSave(inputFormat, nameIndex, timeIndex);
 			time = setInfoFromSave(inputFormat, timeIndex, detailsIndex);
 			details = setInfoFromSave(inputFormat, detailsIndex, priorityIndex);
@@ -144,7 +156,7 @@ class Task
 			string taskInfo = "";
 			if (isSave)
 			{
-				taskInfo += category + "{" + name + "}" + time + "|" + details + "-" + priority + '@' + completion + "~" + to_string(month) + "%" + to_string(day) + "^" + to_string(year);
+				taskInfo += category + "{" + name + "}" + time + "|" + details + "[" + priority + '@' + completion + "~" + to_string(month) + "%" + to_string(day) + "^" + to_string(year);
 			}
 			else
 			{
@@ -210,7 +222,7 @@ public:
 		optionTitles = new string[length];
 		
 
-		for (int i = 0; i < len; i++)
+		for (size_t i = 0; i < len; i++)
 		{
 			options[i] = list[i];
 			optionTitles[i] = messages[i];
@@ -222,7 +234,7 @@ public:
 	void menuChoice()
 	{
 		//Lists options for user
-		for (int i = 0; i < len; i++)
+		for (size_t i = 0; i < len; i++)
 		{
 			int listNum = i + 1;
 
@@ -261,7 +273,7 @@ public:
 	}
 };
 
-void loadFromFile()
+bool loadFromFile()
 {
 	ifstream saveFile;
 	string fileStart;
@@ -270,16 +282,23 @@ void loadFromFile()
 	int catSizeIndex;
 	int catSize;
 
-	saveFile.open("save_file");
+	saveFile.open(SAVE_FILE_NAME);
 
-	saveFile >> fileStart;
+	if (!saveFile.is_open())
+	{
+		return false;
+	}
 
-	taskSizeIndex = fileStart.find(':') + 1;
-	taskSize = stoi(fileStart.substr(taskSizeIndex));
+	string ts;
+	getline(saveFile, ts);
+	taskSize = stoi(ts);
 	
-	taskList.clear();
 
-	for (int i = 0; i < taskSize; i++)
+	taskList.clear();
+	viewingList.clear();
+
+
+	for (size_t i = 0; i < taskSize; i++)
 	{
 		string taskContents;
 		getline(saveFile, taskContents);
@@ -289,14 +308,14 @@ void loadFromFile()
 		taskList.push_back(loadedTask);
 	}
 
-	saveFile >> fileStart;
+	viewingList = taskList;
 
-	catSizeIndex = fileStart.find(':') + 1;
-	catSize = stoi(fileStart.substr(catSizeIndex));
+	getline(saveFile, ts);
+	catSize = stoi(ts);
 
 	taskCategoriesList.clear();
 
-	for (int i = 0; i < catSize; i++)
+	for (size_t i = 0; i < catSize; i++)
 	{
 		string catName;
 		getline(saveFile, catName);
@@ -305,6 +324,8 @@ void loadFromFile()
 	}
 
 	saveFile.close();
+
+	return true;
 }
 
 
@@ -314,23 +335,25 @@ void saveToFile()
 	string saveContents;
 
 	string taskSize = to_string(taskList.size());
-	saveContents = "TASKLIST" + ':' + taskSize;
+	saveContents = taskSize;
+	saveContents += '\n';
 	
 
-	for (int i = 0; i < taskList.size(); i++)
+	for (size_t i = 0; i < taskList.size(); i++)
 	{
 		saveContents += taskList[i].outputFormat(true) + "\n";
 	}
 
 	string catSize = to_string(taskCategoriesList.size());
-	saveContents += "CATLIST" + ':' + catSize;
+	saveContents += catSize;
+	saveContents += '\n';
 
-	for (int i = 0; i < taskCategoriesList[i].size(); i++)
+	for (size_t i = 0; i < taskCategoriesList.size(); i++)
 	{
 		saveContents += taskCategoriesList[i] + "\n";
 	}
 
-	saveFile.open("save_file");
+	saveFile.open(SAVE_FILE_NAME);
 
 	saveFile << saveContents;
 
@@ -393,7 +416,7 @@ void taskCreation()
 		cin.getline(taskCategory, MAX_CATEGORY_LENGTH);
 		cout << endl;
 
-		for (int i = 0; i < taskCategoriesList.size(); i++)
+		for (size_t i = 0; i < taskCategoriesList.size(); i++)
 		{
 			if (taskCategory == taskCategoriesList[i])
 			{
@@ -461,7 +484,7 @@ void taskDeletion()
 	cout << endl;
 
 	//Find the task name in list of tasks and remove that element
-	for (int i = 0; i < taskList.size(); i++)
+	for (size_t i = 0; i < taskList.size(); i++)
 	{
 		if (taskList[i].name == taskName)
 		{
@@ -497,7 +520,7 @@ void taskView()
 		int month = dateArr[0];
 		int year = dateArr[2];
 
-		for (int i = 0; i < taskList.size(); i++)
+		for (size_t i = 0; i < taskList.size(); i++)
 		{
 			if (day == taskList[i].day && month == taskList[i].month && year == taskList[i].year)
 			{
@@ -637,7 +660,7 @@ void sortByPriority()
 {
 	Task intermediary = Task("n", "0/0/0", "n", "n", "n", "n");
 
-	for (int i = 0; i < viewingList.size(); i++)
+	for (size_t i = 0; i < viewingList.size(); i++)
 	{
 		for (int n = i + 1; n < viewingList.size(); n++)
 		{
@@ -656,7 +679,7 @@ void sortByDate()
 {
 	Task intermediary = Task("n", "0/0/0", "n", "n", "n", "n");
 
-	for (int i = 0; i < viewingList.size(); i++)
+	for (size_t i = 0; i < viewingList.size(); i++)
 	{
 		for (int n = i + 1; n < viewingList.size(); n++)
 		{
@@ -704,7 +727,7 @@ void taskCategoryDeleter()
 
 	//Print all non empty task categories to console
 	cout << "Here are your current task categories:\n";
-	for (int i = 0; i < taskCategoriesList.size(); i++)
+	for (size_t i = 0; i < taskCategoriesList.size(); i++)
 	{
 		cout << taskCategoriesList[i] << endl;
 
@@ -717,7 +740,7 @@ void taskCategoryDeleter()
 
 
 	//Find the task category name in the array of taskCategories and set that position to be blank
-	for (int i = 0; i < taskCategoriesList.size(); i++)
+	for (size_t i = 0; i < taskCategoriesList.size(); i++)
 	{
 		if (taskCategoriesList[i] == taskCategoryName)
 		{
@@ -746,7 +769,7 @@ void editTask()
 	int location, changeChoice;
 
 	cout << "Tasks\n";
-	for (int i = 0; i < taskList.size(); i++)
+	for (size_t i = 0; i < taskList.size(); i++)
 	{
 		cout << taskList[i].name << endl;
 	}
@@ -757,7 +780,7 @@ void editTask()
 		cin.ignore();
 		cin.getline(choose, MAX_NAME_LENGTH);
 
-		for (int i = 0; i < taskList.size(); i++)
+		for (size_t i = 0; i < taskList.size(); i++)
 		{
 			if (choose == taskList[i].name)
 			{
@@ -929,7 +952,7 @@ void completeTask()
 //Overview: Removes tasks from the viewing list if they are marked as completed
 void removeCompleted()
 {
-	for (int i = 0; i < viewingList.size(); i++)
+	for (size_t i = 0; i < viewingList.size(); i++)
 	{
 		if (viewingList[i].completion == "true")
 			viewingList.erase(viewingList.begin() + i);
@@ -953,13 +976,13 @@ void applySettings()
 //dateString must be in the format MM/DD/YYYY, the returned array will be in the format {MM, DD, YYYY}
 int* stringToDate (string dateString)
 {
-	int day;
-	int month;
-	int year;
+	int day = 0;
+	int month = 0;
+	int year = 0;
 
 	//Iterate through the string, and collect the dates
 	int count = 0;
-	for(int i = 0; i < dateString.length(); i++)
+	for(size_t i = 0; i < dateString.length(); i++)
 	{
 		if(dateString[i] == '/')
 		{
@@ -986,5 +1009,6 @@ int* stringToDate (string dateString)
 //Function that ends program and fits into the optionList array
 void ender()
 {
-	cout << "";
+	saveToFile();
+	cout << "\n";
 }
