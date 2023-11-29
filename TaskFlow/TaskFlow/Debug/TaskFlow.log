@@ -1,10 +1,10 @@
 ﻿  TaskFlow.cpp
-C:\Users\larry\Documents\cs002\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(225,24): warning C4018: '<': signed/unsigned mismatch
-C:\Users\larry\Documents\cs002\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(237,24): warning C4018: '<': signed/unsigned mismatch
-C:\Users\larry\Documents\cs002\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(301,23): warning C4018: '<': signed/unsigned mismatch
-C:\Users\larry\Documents\cs002\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(318,23): warning C4018: '<': signed/unsigned mismatch
-C:\Users\larry\Documents\cs002\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(280,6): warning C4101: 'taskSizeIndex': unreferenced local variable
-C:\Users\larry\Documents\cs002\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(282,6): warning C4101: 'catSizeIndex': unreferenced local variable
-C:\Users\larry\Documents\cs002\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(665,25): warning C4018: '<': signed/unsigned mismatch
-C:\Users\larry\Documents\cs002\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(684,25): warning C4018: '<': signed/unsigned mismatch
-  TaskFlow.vcxproj -> C:\Users\larry\Documents\cs002\CS002TermProject\TaskFlow\Debug\TaskFlow.exe
+C:\Users\Brentonli\source\repos\Lukas proj\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(227,24): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Brentonli\source\repos\Lukas proj\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(239,24): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Brentonli\source\repos\Lukas proj\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(303,23): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Brentonli\source\repos\Lukas proj\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(320,23): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Brentonli\source\repos\Lukas proj\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(282,6): warning C4101: 'taskSizeIndex': unreferenced local variable
+C:\Users\Brentonli\source\repos\Lukas proj\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(284,6): warning C4101: 'catSizeIndex': unreferenced local variable
+C:\Users\Brentonli\source\repos\Lukas proj\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(670,25): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Brentonli\source\repos\Lukas proj\CS002TermProject\TaskFlow\TaskFlow\TaskFlow.cpp(689,25): warning C4018: '<': signed/unsigned mismatch
+  TaskFlow.vcxproj -> C:\Users\Brentonli\source\repos\Lukas proj\CS002TermProject\TaskFlow\Debug\TaskFlow.exe

@@ -40,11 +40,13 @@ void sortByDate();
 void viewChoice();
 void taskCategoryCreator();
 void taskCategoryDeleter();
+void removeTask(string taskName);
 void editTask();
 void completeTask();
 void removeCompleted();
 void applySettings();
 int* stringToDate (string dateString);
+bool checkCat(string category);
 void ender();
 
 //Predefined messages for each option
@@ -374,9 +376,15 @@ void featureSelection()
 	optionList currentFeatures2[] = { taskCategoryCreator, taskCategoryDeleter, taskCreation, ender };
 	string optionNames2[] = { NEW_CAT, DELETE_CAT, NEW_TASK, EXIT };
 
+	//If no categories exist
+	optionList currentFeatures3[] = { taskCategoryCreator, ender };
+	string optionNames3[] = { NEW_CAT, EXIT };
+
 	Menu mainMenu;
 
-	if (taskList.size() == 0)
+	if (taskCategoriesList.size() == 0)
+		mainMenu.syncOptions(currentFeatures3, optionNames3, sizeof(currentFeatures3) / sizeof(currentFeatures3[0]));
+	else if (taskList.size() == 0)
 		mainMenu.syncOptions(currentFeatures2, optionNames2, sizeof(currentFeatures2) / sizeof(currentFeatures2[0]));
 	else
 		mainMenu.syncOptions(currentFeatures1, optionNames1, sizeof(currentFeatures1) / sizeof(currentFeatures1[0]));
@@ -416,22 +424,13 @@ void taskCreation()
 		cin.getline(taskCategory, MAX_CATEGORY_LENGTH);
 		cout << endl;
 
-		for (size_t i = 0; i < taskCategoriesList.size(); i++)
+		if (checkCat(taskCategory))
 		{
-			if (taskCategory == taskCategoriesList[i])
-			{
-				fail = false;
-				break;
-			}
-		}
-
-		if (fail)
-		{
-			cout << "Please enter the name of an existing category.\n";
+			break; //If input is valid, break from loop and continue
 		}
 		else
 		{
-			break; //If input is valid, break from loop and continue
+			cout << "Please enter the name of an existing category.\n";
 		}
 	}
 
@@ -484,15 +483,7 @@ void taskDeletion()
 	cout << endl;
 
 	//Find the task name in list of tasks and remove that element
-	for (size_t i = 0; i < taskList.size(); i++)
-	{
-		if (taskList[i].name == taskName)
-		{
-			taskList.erase(taskList.begin() + i);
-			applySettings();
-			break;
-		}
-	}
+	removeTask(taskName);
 
 	cout << "Alright, the task " << taskName << " has been deleted!\n\n";
 
@@ -503,6 +494,20 @@ void taskDeletion()
 	fromTaskDeletion.syncOptions(currentFeatures, optionNames, sizeof(currentFeatures) / sizeof(currentFeatures[0]));
 
 	fromTaskDeletion.menuChoice();
+}
+
+
+void removeTask(string taskName)
+{
+	for (size_t i = 0; i < taskList.size(); i++)
+	{
+		if (taskList[i].name == taskName)
+		{
+			taskList.erase(taskList.begin() + i);
+			applySettings();
+			break;
+		}
+	}
 }
 
 //Overview: Print the current saved tasks of a certain date to the console, and send user to main menu
@@ -697,11 +702,12 @@ void sortByDate()
 //Sends user to either task category menu, main menu, or allows for more tasks to be created based on user input
 void taskCategoryCreator()
 {
-	string taskCategoryName = "";
+	char taskCategoryName[MAX_CATEGORY_LENGTH];
 	int userOption = 0;
 
+	cin.ignore();
 	cout << "Enter the new name for your task category: ";
-	cin >> taskCategoryName;
+	cin.getline(taskCategoryName, MAX_CATEGORY_LENGTH);
 	cout << endl;
 
 	taskCategoriesList.push_back(taskCategoryName);
@@ -722,7 +728,7 @@ void taskCategoryCreator()
 //Sends user to either task category menu, main menu, or allows for more tasks to be created based on user input
 void taskCategoryDeleter()
 {
-	string taskCategoryName = "";
+	char taskCategoryName[MAX_CATEGORY_LENGTH];
 	int userOption = 0;
 
 	//Print all non empty task categories to console
@@ -734,22 +740,86 @@ void taskCategoryDeleter()
 	}
 	cout << endl;
 
-	cout << "Enter the name of the cateogory you want to delete: ";
-	cin >> taskCategoryName;
-	cout << endl;
-
-
-	//Find the task category name in the array of taskCategories and set that position to be blank
-	for (size_t i = 0; i < taskCategoriesList.size(); i++)
+	cin.ignore();
+	while (true)
 	{
-		if (taskCategoriesList[i] == taskCategoryName)
+		cout << "Enter the name of the cateogory you want to delete: ";
+		cin.getline(taskCategoryName, MAX_CATEGORY_LENGTH);
+		cout << endl;
+
+		if (checkCat(taskCategoryName))
 		{
-			taskCategoriesList.erase(taskCategoriesList.begin() + i);
+			vector<string> matchingTasks;
+			bool stop = false;
+
+			for (Task n : taskList)
+			{
+				if (taskCategoryName == n.category)
+					matchingTasks.push_back(n.name);
+			}
+
+			if (matchingTasks.size() > 0)
+			{
+				for (string n : matchingTasks)
+					cout << n << endl;
+
+				char confirm[MAX_CATEGORY_LENGTH];
+				while (true)
+				{
+					cout << "Deleting this category will delete the above tasks as well, is that ok?(yes/no): ";
+					cin.getline(confirm, MAX_CATEGORY_LENGTH);
+					string confirmation = static_cast<string>(confirm);
+
+					if (confirmation == "yes")
+					{
+						//Find the task category name in the array of taskCategories and set that position to be blank
+						for (size_t i = 0; i < taskCategoriesList.size(); i++)
+						{
+							if (taskCategoriesList[i] == taskCategoryName)
+							{
+								taskCategoriesList.erase(taskCategoriesList.begin() + i);
+								break;
+							}
+						}
+
+						for (size_t i = 0; i < taskList.size(); i++)
+						{
+							if (taskList[i].category == taskCategoryName)
+								taskList.erase(taskList.begin() + i);
+						}
+
+						cout << "Alright, the task category " << taskCategoryName << " and the relevent tasks have been deleted!\n\n";
+						break;
+					}
+					else if (confirmation == "no")
+					{
+						cout << "Understood, no categories will be deleted.\n\n";
+						break;
+					}
+					else
+						cout << "Please enter either \"yes\" or \"no\"." << endl;
+				}
+			}
+			else
+			{
+				//Find the task category name in the array of taskCategories and set that position to be blank
+				for (size_t i = 0; i < taskCategoriesList.size(); i++)
+				{
+					if (taskCategoriesList[i] == taskCategoryName)
+					{
+						taskCategoriesList.erase(taskCategoriesList.begin() + i);
+						break;
+					}
+				}
+
+				cout << "Alright, the task category " << taskCategoryName << " has been deleted!\n\n";
+			}
+
 			break;
 		}
+		else
+			cout << "Please enter the name of an existing category." << endl;
 	}
-
-	cout << "Alright, the task category " << taskCategoryName << " has been deleted!\n\n";
 
 	optionList currentFeatures[] = { taskCategoryDeleter, featureSelection };
 	string optionNames[] = { ANOTHER_DELETE_CAT, MAIN_MENU };
@@ -859,9 +929,17 @@ void editTask()
 	}
 	else if (changeChoice == 4)
 	{
-		cout << "Enter the category for this task: ";
-		cin.getline(category, MAX_CATEGORY_LENGTH);
-		cout << endl;
+		while (true)
+		{
+			cout << "Enter the category for this task: ";
+			cin.getline(category, MAX_CATEGORY_LENGTH);
+			cout << endl;
+
+			if (checkCat(category))
+				break;
+			else
+				cout << "Please enter an existing category." << endl;
+		}
 
 		taskList[location].editCategory(category);
 	}
@@ -1004,6 +1082,18 @@ int* stringToDate (string dateString)
 	dateArray[2] = year;
 
 	return dateArray;
+}
+
+
+bool checkCat(string category)
+{
+	for (string n : taskCategoriesList)
+	{
+		if (category == n)
+			return true;
+	}
+
+	return false;
 }
 
 //Function that ends program and fits into the optionList array
