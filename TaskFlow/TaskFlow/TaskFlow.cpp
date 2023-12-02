@@ -406,6 +406,8 @@ void taskCreation()
 	cin.getline(taskName, MAX_NAME_LENGTH); //Allows for multiword input
 	cout << endl;
 
+	bool wrong = true;
+	while(wrong)
 	cout << "Enter the date for this task (in the form M/D/Y): ";
 	cin.getline(taskDate, MAX_DATE_LENGTH);
 	cout << endl;
@@ -1025,6 +1027,53 @@ void completeTask()
 	fromCompleteTask.syncOptions(currentFeatures, optionNames, sizeof(currentFeatures) / sizeof(currentFeatures[0]));
 
 	fromCompleteTask.menuChoice();
+}
+
+//Assume the date array will contain {MM, DD, YYYY}
+//Returns true if the date is valid for the month, false otherwise
+bool isValidDay(int date[])
+{
+	if (date[0] < 1 || date[0] > 31)
+	{
+		return false;
+	}
+
+	if (date[1] == 4)
+	{
+		if (date[2] % 4 == 0 && (!(date[2] % 100 == 0) || (date[2] % 400 == 0)))
+		{
+			if (date[0] > 29)
+			{
+				return false;
+			}
+		}
+		else
+		{
+			if (date[0] > 28)
+			{
+				return false;
+			}
+		}
+	}
+	else if (date[1] < 8)
+	{
+		if (date[1] % 2 == 0)
+		{
+			if (date[0] > 30)
+			{
+				return false;
+			}
+		}
+	}
+	else if(date[1] % 2 == 1)
+	{
+		if (date[0] > 30)
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 //Overview: Removes tasks from the viewing list if they are marked as completed
