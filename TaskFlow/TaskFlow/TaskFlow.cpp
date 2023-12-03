@@ -406,8 +406,7 @@ void taskCreation()
 	cin.getline(taskName, MAX_NAME_LENGTH); //Allows for multiword input
 	cout << endl;
 
-	bool wrong = true;
-	while(wrong)
+	
 	cout << "Enter the date for this task (in the form M/D/Y): ";
 	cin.getline(taskDate, MAX_DATE_LENGTH);
 	cout << endl;
